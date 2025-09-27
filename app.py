@@ -1,7 +1,9 @@
 from flask import Flask, render_template, request, jsonify
 import re
+from whitenoise import WhiteNoise
 
 app = Flask(__name__)
+app.wsgi_app = WhiteNoise(app.wsgi_app, root='static/')
 
 # Banco de dados de jogos expandido e com estrutura aprimorada (gêneros e temas)
 GAMES_DATABASE = [
