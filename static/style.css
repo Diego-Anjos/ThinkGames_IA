@@ -3,8 +3,8 @@
     --bg-light: #1A1A2E;
     --text-primary: #F0F0F0;
     --text-secondary: #A0A0B0;
-    --gradient-start: #8A2BE2; /* BlueViolet */
-    --gradient-end: #FF1493;   /* DeepPink */
+    --gradient-start: #00f260; /* Verde Neon */
+    --gradient-end: #0575e6;   /* Azul Elétrico */
     --border-color: rgba(255, 255, 255, 0.1);
 }
 
@@ -119,6 +119,7 @@ button:disabled {
 .game-card:hover {
     transform: translateY(-5px);
     border-color: var(--gradient-start);
+    box-shadow: 0 10px 30px -10px rgba(0, 242, 96, 0.5);
 }
 
 .game-card h3 {
