@@ -1,0 +1,30 @@
+# Ambiente virtual
+venv/
+.venv/
+env/
+ENV/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Segredos
+.env
+.env.*
+!.env.example
+
+# IDE
+.vscode/
+.cursor/
+.idea/
+
+# Sistema
+.DS_Store
+Thumbs.db

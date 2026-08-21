@@ -7,56 +7,156 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 </head>
 <body>
 
-    <div class="container">
-        <header>
-            <h1 class="title">Think Games AI</h1>
-            <p class="subtitle">Imagine o seu jogo perfeito. Descreva o mundo, a jogabilidade ou a história e deixe nossa IA descobrir títulos personalizados para você.</p>
-        </header>
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <a class="brand" href="/">
+                <span class="brand-icon" aria-hidden="true">🎮</span>
+                <span class="brand-name">Think Games <span class="brand-accent">AI</span></span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="/">Início</a></li>
+                <li><a href="#sobre">Sobre o Projeto</a></li>
+                <li><a class="nav-link-outline" href="https://github.com" target="_blank" rel="noopener">GitHub</a></li>
+            </ul>
+        </div>
+    </nav>
 
-        <main>
-            <div class="search-box">
-                <textarea id="game-description" placeholder="Ex: um jogo de tiro tático em equipe com personagens..."></textarea>
-                <button id="search-button">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
-                        <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
-                    </svg>
-                    <span class="button-text">Find My Game</span>
-                    <div class="loader" style="display: none;"></div>
-                </button>
+    <main>
+        <section class="hero">
+            <div class="hero-slide" aria-hidden="true"></div>
+            <div class="hero-slide" aria-hidden="true"></div>
+
+            <div class="hero-inner">
+                <span class="hero-badge">Recomendações inteligentes de jogos</span>
+                <h1 class="hero-title">Descubra seu próximo <span class="text-gradient">jogo favorito</span></h1>
+                <p class="hero-subtitle">
+                    Imagine o seu jogo perfeito. Descreva o mundo, a jogabilidade ou a história
+                    e deixe nossa IA descobrir títulos personalizados para você.
+                </p>
+
+                <form class="search-box" id="search-form" autocomplete="off">
+                    <div class="search-field">
+                        <svg class="search-field-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+                        </svg>
+                        <input
+                            type="text"
+                            id="game-description"
+                            name="description"
+                            placeholder="Ex: um jogo de tiro tático em equipe com personagens..."
+                            aria-label="Descreva o jogo que você procura">
+                    </div>
+                    <button type="submit" id="search-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+                        </svg>
+                        <span class="button-text">Buscar Jogos</span>
+                        <div class="loader" style="display: none;"></div>
+                    </button>
+                </form>
+
+                <ul class="hero-suggestions">
+                    <li><button type="button" class="suggestion-chip">RPG de mundo aberto</button></li>
+                    <li><button type="button" class="suggestion-chip">Corrida arcade</button></li>
+                    <li><button type="button" class="suggestion-chip">Terror cooperativo</button></li>
+                    <li><button type="button" class="suggestion-chip">Estratégia por turnos</button></li>
+                </ul>
             </div>
+        </section>
 
-            <div id="results-container">
-                </div>
-        </main>
-        
-        <footer>
-            <p>thinkplay.com</p>
-        </footer>
-    </div>
+        <section class="results">
+            <div id="results-container"></div>
+        </section>
+    </main>
+
+    <footer class="site-footer" id="sobre">
+        <div class="footer-inner">
+            <p class="footer-brand">🎮 Think Games AI</p>
+            <p class="footer-about">
+                Buscador de jogos que traduz a sua descrição em recomendações reais,
+                com dados de catálogo, avaliações e plataformas fornecidos pela API do RAWG.
+            </p>
+            <p>&copy; <span id="footer-year">2026</span> Think Games AI. Todos os direitos reservados.</p>
+            <p class="footer-note">Projeto acadêmico - FECAF</p>
+        </div>
+    </footer>
 
     <script>
-        document.getElementById('search-button').addEventListener('click', async () => {
-            const description = document.getElementById('game-description').value;
-            const resultsContainer = document.getElementById('results-container');
-            const button = document.getElementById('search-button');
-            const buttonText = button.querySelector('.button-text');
-            const loader = button.querySelector('.loader');
-            const buttonIcon = button.querySelector('svg');
+        const HERO_IMAGES = [
+            'https://media.rawg.io/media/games/618/618c2031a07bbff6b4f611f10b6bcdbc.jpg', // The Witcher 3
+            'https://media.rawg.io/media/games/26d/26d4437715bee60138dab4a7c8c59c92.jpg', // Cyberpunk 2077
+            'https://media.rawg.io/media/games/511/5118aff5091cb3efec399c808f8c598f.jpg', // Red Dead Redemption 2
+            'https://media.rawg.io/media/games/cc1/cc196a5ad763955d6532cdba236f730c.jpg', // Zelda: Breath of the Wild
+            'https://media.rawg.io/media/games/5ec/5ecac5cb026ec26a56efcc546364e348.jpg', // Elden Ring
+        ];
+
+        const heroSlides = document.querySelectorAll('.hero-slide');
+        let heroImageIndex = 0;
+        let activeSlideIndex = 0;
+
+        HERO_IMAGES.forEach(src => { new Image().src = src; });
+
+        heroSlides[0].style.backgroundImage = `url('${HERO_IMAGES[0]}')`;
+        heroSlides[0].classList.add('is-active');
+
+        // Alterna entre duas camadas empilhadas: o navegador não anima background-image,
+        // então o crossfade vem da opacidade da camada que entra.
+        setInterval(() => {
+            heroImageIndex = (heroImageIndex + 1) % HERO_IMAGES.length;
+            const incomingIndex = (activeSlideIndex + 1) % heroSlides.length;
+
+            heroSlides[incomingIndex].style.backgroundImage = `url('${HERO_IMAGES[heroImageIndex]}')`;
+            heroSlides[incomingIndex].classList.add('is-active');
+            heroSlides[activeSlideIndex].classList.remove('is-active');
+
+            activeSlideIndex = incomingIndex;
+        }, 5000);
+
+        const searchForm = document.getElementById('search-form');
+        const searchInput = document.getElementById('game-description');
+        const searchButton = document.getElementById('search-button');
+        const resultsContainer = document.getElementById('results-container');
+
+        document.getElementById('footer-year').textContent = new Date().getFullYear();
+
+        document.querySelectorAll('.suggestion-chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                searchInput.value = chip.textContent.trim();
+                searchForm.requestSubmit();
+            });
+        });
+
+        function escapeHtml(value) {
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        searchForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const description = searchInput.value;
+            const buttonText = searchButton.querySelector('.button-text');
+            const loader = searchButton.querySelector('.loader');
+            const buttonIcon = searchButton.querySelector('svg');
 
             if (!description.trim()) {
-                resultsContainer.innerHTML = '<p class="error-message">Please describe the game you are looking for.</p>';
+                resultsContainer.innerHTML = '<p class="error-message">Por favor, descreva o jogo que você está procurando.</p>';
                 return;
             }
 
             resultsContainer.innerHTML = '';
-            buttonText.style.display = 'none';
+            buttonText.textContent = 'Buscando...';
             buttonIcon.style.display = 'none';
             loader.style.display = 'block';
-            button.disabled = true;
+            searchButton.disabled = true;
 
             try {
                 const response = await fetch('/suggest', {
@@ -67,31 +167,68 @@
 
                 const suggestions = await response.json();
 
-                if (suggestions.length > 0) {
+                if (!response.ok) {
+                    resultsContainer.innerHTML = `<p class="error-message">${escapeHtml(suggestions.error || 'Ocorreu um erro ao buscar as recomendações.')}</p>`;
+                    return;
+                }
+
+                if (Array.isArray(suggestions) && suggestions.length > 0) {
+                    const heading = document.createElement('h2');
+                    heading.className = 'results-title';
+                    heading.textContent = 'Jogos recomendados para você';
+
+                    const grid = document.createElement('div');
+                    grid.className = 'games-grid';
+
                     suggestions.forEach(game => {
-                        const card = document.createElement('div');
+                        const card = document.createElement('article');
                         card.className = 'game-card';
+
+                        const imageSrc = game.background_image || '';
+                        const imageHtml = imageSrc
+                            ? `<img class="game-card-image" src="${escapeHtml(imageSrc)}" alt="Capa de ${escapeHtml(game.name || 'jogo')}" loading="lazy">`
+                            : '<div class="game-card-image game-card-image--empty"><span>Sem imagem</span></div>';
+
+                        const platforms = Array.isArray(game.platforms) && game.platforms.length
+                            ? game.platforms.map(platform => `<span class="badge">${escapeHtml(platform)}</span>`).join('')
+                            : '<span class="badge badge--muted">Não informado</span>';
+
+                        const rating = game.rating ? game.rating.toFixed(1) : 'N/A';
+                        const released = game.released
+                            ? new Date(`${game.released}T00:00:00`).toLocaleDateString('pt-BR')
+                            : 'Não informado';
+
                         card.innerHTML = `
-                            <h3>${game.title}</h3>
-                            <p>${game.description}</p>
-                            <div class="platforms">
-                                <strong>Available on:</strong> ${game.platforms.join(', ')}
+                            <div class="game-card-media">
+                                ${imageHtml}
+                                <span class="game-rating">⭐ ${escapeHtml(rating)}</span>
+                            </div>
+                            <div class="game-card-body">
+                                <h3>${escapeHtml(game.name || 'Jogo sem nome')}</h3>
+                                <p class="game-released">Lançamento: ${escapeHtml(released)}</p>
+                                <div class="platforms">
+                                    <span class="platforms-label">Disponível em</span>
+                                    <div class="badge-list">${platforms}</div>
+                                </div>
                             </div>
                         `;
-                        resultsContainer.appendChild(card);
+                        grid.appendChild(card);
                     });
+
+                    resultsContainer.appendChild(heading);
+                    resultsContainer.appendChild(grid);
                 } else {
-                    resultsContainer.innerHTML = '<p class="info-message">No games found matching your description. Try using different keywords.</p>';
+                    resultsContainer.innerHTML = '<p class="info-message">Nenhum jogo encontrado com essa descrição.</p>';
                 }
 
             } catch (error) {
                 console.error('Error fetching suggestions:', error);
-                resultsContainer.innerHTML = '<p class="error-message">An error occurred while fetching suggestions. Please try again later.</p>';
+                resultsContainer.innerHTML = '<p class="error-message">Ocorreu um erro ao buscar as recomendações.</p>';
             } finally {
-                buttonText.style.display = 'inline';
+                buttonText.textContent = 'Buscar Jogos';
                 buttonIcon.style.display = 'inline-block';
                 loader.style.display = 'none';
-                button.disabled = false;
+                searchButton.disabled = false;
             }
         });
     </script>
