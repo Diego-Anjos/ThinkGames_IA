@@ -1,30 +1,21 @@
-# Ambiente virtual
-venv/
-.venv/
-env/
-ENV/
-
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-*.egg-info/
-.eggs/
-dist/
-build/
-
-# Segredos
+# Arquivos de Ambiente (MUITO IMPORTANTE - NÃO SUBIR CHAVES API)
 .env
-.env.*
-!.env.example
 
-# IDE
+# Ambientes Virtuais Python
+venv/
+env/
+.venv/
+
+# Cache do Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Arquivos de IDE / Editores (Cursor, VS Code, etc)
 .vscode/
 .cursor/
-.idea/
 
-# Sistema
+# Arquivos do Sistema Operacional
 .DS_Store
 Thumbs.db

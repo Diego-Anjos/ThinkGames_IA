@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Think Games AI - Descubra seu próximo jogo</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,14 +13,48 @@
 
     <nav class="navbar">
         <div class="navbar-inner">
-            <a class="brand" href="/">
-                <span class="brand-icon" aria-hidden="true">🎮</span>
-                <span class="brand-name">Think Games <span class="brand-accent">AI</span></span>
+            <a class="navbar-logo" href="/">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" class="logo-svg" role="img" aria-label="Think Games AI">
+                    <!-- Lâmpada (Amarela) -->
+                    <g stroke="#FBBF24" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M100,20 C83.4,20 70,33.4 70,50 C70,61.4 76.5,71.2 86,76 L86,85 C86,87.8 88.2,90 91,90 L109,90 C111.8,90 114,87.8 114,85 L114,76 C123.5,71.2 130,61.4 130,50 C130,33.4 116.6,20 100,20 Z" />
+                        <line x1="91" y1="98" x2="109" y2="98" />
+                        <line x1="94" y1="106" x2="106" y2="106" />
+                        <!-- Filamento interno -->
+                        <polyline points="92,76 100,55 108,76" />
+                    </g>
+
+                    <!-- Controle de Videogame (Roxo) -->
+                    <g stroke="#8B5CF6" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <!-- Corpo do controle -->
+                        <path d="M45,110 C20,110 20,145 35,170 C40,178 50,175 55,165 L65,145 L135,145 L145,165 C150,175 160,178 165,170 C180,145 180,110 155,110 Z" />
+                        <!-- D-Pad (Setinhas) -->
+                        <path d="M60,125 L75,125 M67.5,117.5 L67.5,132.5" />
+                        <!-- Botões de Ação -->
+                        <circle cx="140" cy="120" r="2" fill="#8B5CF6" />
+                        <circle cx="130" cy="130" r="2" fill="#8B5CF6" />
+                        <circle cx="150" cy="130" r="2" fill="#8B5CF6" />
+                        <circle cx="140" cy="140" r="2" fill="#8B5CF6" />
+                    </g>
+                </svg>
+                <span class="logo-text">Think Games <span class="text-ai">AI</span></span>
             </a>
             <ul class="nav-links">
                 <li><a href="/">Início</a></li>
-                <li><a href="#sobre">Sobre o Projeto</a></li>
-                <li><a class="nav-link-outline" href="https://github.com" target="_blank" rel="noopener">GitHub</a></li>
+                <li class="dropdown">
+                    <a href="#" class="dropbtn" onclick="event.preventDefault()">Categorias ▼</a>
+                    <div class="dropdown-content">
+                        <a href="#" onclick="buscarCategoria('action', event)">Ação</a>
+                        <a href="#" onclick="buscarCategoria('adventure', event)">Aventura</a>
+                        <a href="#" onclick="buscarCategoria('role-playing-games-rpg', event)">RPG</a>
+                        <a href="#" onclick="buscarCategoria('shooter', event)">Tiro</a>
+                        <a href="#" onclick="buscarCategoria('strategy', event)">Estratégia</a>
+                        <a href="#" onclick="buscarCategoria('sports', event)">Esportes</a>
+                        <a href="#" onclick="buscarCategoria('racing', event)">Corrida</a>
+                        <a href="#" onclick="buscarCategoria('puzzle', event)">Puzzle</a>
+                    </div>
+                </li>
+                <li><a href="#" onclick="abrirModal(event)">Sobre o Projeto</a></li>
             </ul>
         </div>
     </nav>
@@ -68,14 +102,42 @@
             </div>
         </section>
 
-        <section class="results">
+        <section class="results" id="results-section">
+            <div id="ai-message-container" class="ai-message-box" style="display: none;">
+                <strong>🤖 A IA diz:</strong> <span id="ai-message-text"></span>
+            </div>
             <div id="results-container"></div>
+            <div id="pagination-controls" class="pagination-controls" style="display: none;">
+                <button id="prev-page" class="page-btn" onclick="mudarPagina(-1)">◀ Anterior</button>
+                <span id="current-page-display">Página 1</span>
+                <button id="next-page" class="page-btn" onclick="mudarPagina(1)">Próxima ▶</button>
+            </div>
         </section>
     </main>
 
     <footer class="site-footer" id="sobre">
         <div class="footer-inner">
-            <p class="footer-brand">🎮 Think Games AI</p>
+            <div class="footer-logo">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" class="logo-svg-footer" role="img" aria-hidden="true">
+                    <!-- Lâmpada (Amarela) -->
+                    <g stroke="#FBBF24" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M100,20 C83.4,20 70,33.4 70,50 C70,61.4 76.5,71.2 86,76 L86,85 C86,87.8 88.2,90 91,90 L109,90 C111.8,90 114,87.8 114,85 L114,76 C123.5,71.2 130,61.4 130,50 C130,33.4 116.6,20 100,20 Z" />
+                        <line x1="91" y1="98" x2="109" y2="98" />
+                        <line x1="94" y1="106" x2="106" y2="106" />
+                        <polyline points="92,76 100,55 108,76" />
+                    </g>
+                    <!-- Controle de Videogame (Roxo) -->
+                    <g stroke="#8B5CF6" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M45,110 C20,110 20,145 35,170 C40,178 50,175 55,165 L65,145 L135,145 L145,165 C150,175 160,178 165,170 C180,145 180,110 155,110 Z" />
+                        <path d="M60,125 L75,125 M67.5,117.5 L67.5,132.5" />
+                        <circle cx="140" cy="120" r="2" fill="#8B5CF6" />
+                        <circle cx="130" cy="130" r="2" fill="#8B5CF6" />
+                        <circle cx="150" cy="130" r="2" fill="#8B5CF6" />
+                        <circle cx="140" cy="140" r="2" fill="#8B5CF6" />
+                    </g>
+                </svg>
+                <span class="logo-text-footer">Think Games <span class="text-ai">AI</span></span>
+            </div>
             <p class="footer-about">
                 Buscador de jogos que traduz a sua descrição em recomendações reais,
                 com dados de catálogo, avaliações e plataformas fornecidos pela API do RAWG.
@@ -85,31 +147,76 @@
         </div>
     </footer>
 
+    <div id="sobreModal" class="modal-overlay">
+        <div class="modal-content">
+            <button type="button" class="close-modal" onclick="fecharModal()">&times;</button>
+            <h2 class="modal-title">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" class="logo-svg-modal" role="img" aria-hidden="true">
+                    <!-- Lâmpada (Amarela) -->
+                    <g stroke="#FBBF24" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M100,20 C83.4,20 70,33.4 70,50 C70,61.4 76.5,71.2 86,76 L86,85 C86,87.8 88.2,90 91,90 L109,90 C111.8,90 114,87.8 114,85 L114,76 C123.5,71.2 130,61.4 130,50 C130,33.4 116.6,20 100,20 Z" />
+                        <line x1="91" y1="98" x2="109" y2="98" />
+                        <line x1="94" y1="106" x2="106" y2="106" />
+                        <polyline points="92,76 100,55 108,76" />
+                    </g>
+                    <!-- Controle de Videogame (Roxo) -->
+                    <g stroke="#8B5CF6" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M45,110 C20,110 20,145 35,170 C40,178 50,175 55,165 L65,145 L135,145 L145,165 C150,175 160,178 165,170 C180,145 180,110 155,110 Z" />
+                        <path d="M60,125 L75,125 M67.5,117.5 L67.5,132.5" />
+                        <circle cx="140" cy="120" r="2" fill="#8B5CF6" />
+                        <circle cx="130" cy="130" r="2" fill="#8B5CF6" />
+                        <circle cx="150" cy="130" r="2" fill="#8B5CF6" />
+                        <circle cx="140" cy="140" r="2" fill="#8B5CF6" />
+                    </g>
+                </svg>
+                Think Games <span class="text-ai">AI</span>
+            </h2>
+            <p>Um sistema inteligente de recomendação de jogos baseado em Inteligência Artificial. Imagine o seu jogo perfeito, descreva-o com suas palavras e deixe nossa IA descobrir títulos personalizados para você.</p>
+            <p>Este projeto foi desenvolvido como parte da atividade para o curso de Graduação em Gestão da Tecnologia da Informação da Faculdade FECAF.</p>
+
+            <h3>📜 Visão Geral</h3>
+            <p>Muitos jogadores sentem dificuldade em encontrar jogos que realmente correspondam aos seus gostos específicos, para além dos títulos mais populares. O Think Games AI resolve este problema permitindo que os usuários descrevam um jogo em linguagem natural, e utiliza uma IA com lógica de pontuação para analisar o texto e sugerir os títulos mais relevantes em seu banco de dados.</p>
+
+            <h3>✨ Features</h3>
+            <ul>
+                <li><strong>Busca por Linguagem Natural:</strong> Descreva o jogo que você quer com total liberdade.</li>
+                <li><strong>IA com Lógica de Pontuação:</strong> O sistema analisa gêneros e temas com pesos diferentes para fornecer recomendações mais precisas.</li>
+                <li><strong>Interface Moderna e Intuitiva:</strong> Um design limpo e direto ao ponto, focado na experiência do usuário.</li>
+                <li><strong>Banco de Dados Curado:</strong> Uma lista de jogos variada para cobrir diversos gêneros e estilos.</li>
+            </ul>
+        </div>
+    </div>
+
     <script>
-        const HERO_IMAGES = [
-            'https://media.rawg.io/media/games/618/618c2031a07bbff6b4f611f10b6bcdbc.jpg', // The Witcher 3
-            'https://media.rawg.io/media/games/26d/26d4437715bee60138dab4a7c8c59c92.jpg', // Cyberpunk 2077
-            'https://media.rawg.io/media/games/511/5118aff5091cb3efec399c808f8c598f.jpg', // Red Dead Redemption 2
-            'https://media.rawg.io/media/games/cc1/cc196a5ad763955d6532cdba236f730c.jpg', // Zelda: Breath of the Wild
-            'https://media.rawg.io/media/games/5ec/5ecac5cb026ec26a56efcc546364e348.jpg', // Elden Ring
+        const backgroundImages = [
+            "{{ url_for('static', filename='images/1-zelda.jpg') }}",
+            "{{ url_for('static', filename='images/2-the-last-of-us.jpg') }}",
+            "{{ url_for('static', filename='images/3-god-of-war-ragnarok.jpg') }}",
+            "{{ url_for('static', filename='images/4-genshin-impact.jpg') }}",
+            "{{ url_for('static', filename='images/5-resident-evil.jpg') }}",
+            "{{ url_for('static', filename='images/6-phantom-blade-zero.jpg') }}",
+            "{{ url_for('static', filename='images/7-cyberpunk.jpg') }}",
+            "{{ url_for('static', filename='images/8-pragmata.jpg') }}",
+            "{{ url_for('static', filename='images/9-red-dead-redemption.jpg') }}",
+            "{{ url_for('static', filename='images/10-elden-ring.jpg') }}"
         ];
 
         const heroSlides = document.querySelectorAll('.hero-slide');
         let heroImageIndex = 0;
         let activeSlideIndex = 0;
 
-        HERO_IMAGES.forEach(src => { new Image().src = src; });
+        backgroundImages.forEach(src => { new Image().src = src; });
 
-        heroSlides[0].style.backgroundImage = `url('${HERO_IMAGES[0]}')`;
+        heroSlides[0].style.backgroundImage = `url('${backgroundImages[0]}')`;
         heroSlides[0].classList.add('is-active');
 
         // Alterna entre duas camadas empilhadas: o navegador não anima background-image,
         // então o crossfade vem da opacidade da camada que entra.
         setInterval(() => {
-            heroImageIndex = (heroImageIndex + 1) % HERO_IMAGES.length;
+            heroImageIndex = (heroImageIndex + 1) % backgroundImages.length;
             const incomingIndex = (activeSlideIndex + 1) % heroSlides.length;
 
-            heroSlides[incomingIndex].style.backgroundImage = `url('${HERO_IMAGES[heroImageIndex]}')`;
+            heroSlides[incomingIndex].style.backgroundImage = `url('${backgroundImages[heroImageIndex]}')`;
             heroSlides[incomingIndex].classList.add('is-active');
             heroSlides[activeSlideIndex].classList.remove('is-active');
 
@@ -120,6 +227,22 @@
         const searchInput = document.getElementById('game-description');
         const searchButton = document.getElementById('search-button');
         const resultsContainer = document.getElementById('results-container');
+
+        let currentPage = 1;
+        let currentGenre = '';
+        let isFetching = false;
+        let hasMore = true;
+
+        const genreLabels = {
+            action: 'Ação',
+            adventure: 'Aventura',
+            'role-playing-games-rpg': 'RPG',
+            shooter: 'Tiro',
+            strategy: 'Estratégia',
+            sports: 'Esportes',
+            racing: 'Corrida',
+            puzzle: 'Puzzle'
+        };
 
         document.getElementById('footer-year').textContent = new Date().getFullYear();
 
@@ -139,8 +262,217 @@
                 .replace(/'/g, '&#39;');
         }
 
+        function formatDate(value) {
+            if (!value) {
+                return 'Não informado';
+            }
+            const parsed = new Date(`${value}T00:00:00`);
+            return Number.isNaN(parsed.getTime())
+                ? 'Não informado'
+                : parsed.toLocaleDateString('pt-BR');
+        }
+
+        function hidePagination() {
+            const paginationControls = document.getElementById('pagination-controls');
+            if (paginationControls) {
+                paginationControls.style.display = 'none';
+            }
+        }
+
+        function hideAiMessage() {
+            const aiMsgContainer = getOrCreateAiMessageBox();
+            aiMsgContainer.style.display = 'none';
+        }
+
+        function getOrCreateAiMessageBox() {
+            let box = document.getElementById('ai-message-container');
+            if (box) {
+                return box;
+            }
+            box = document.createElement('div');
+            box.id = 'ai-message-container';
+            box.className = 'ai-message-box';
+            box.style.display = 'none';
+            box.innerHTML = '<strong>🤖 A IA diz:</strong> <span id="ai-message-text"></span>';
+            const resultsSection = document.getElementById('results-section');
+            resultsSection.insertBefore(box, resultsContainer);
+            return box;
+        }
+
+        function showAiMessage(message) {
+            const aiMsgContainer = getOrCreateAiMessageBox();
+            const aiMsgText = document.getElementById('ai-message-text');
+            if (!message) {
+                aiMsgContainer.style.display = 'none';
+                return;
+            }
+            if (aiMsgText) {
+                aiMsgText.textContent = message;
+            }
+            aiMsgContainer.style.display = 'block';
+        }
+
+        function resetGenrePaging() {
+            currentGenre = '';
+            currentPage = 1;
+            hasMore = true;
+            isFetching = false;
+            hidePagination();
+        }
+
+        function ensureResultsGrid(title) {
+            let grid = document.getElementById('results-grid');
+            const aiBox = getOrCreateAiMessageBox();
+
+            if (!grid) {
+                resultsContainer.innerHTML = '';
+
+                const heading = document.createElement('h2');
+                heading.className = 'results-title';
+                heading.textContent = title;
+
+                grid = document.createElement('div');
+                grid.className = 'games-grid';
+                grid.id = 'results-grid';
+
+                resultsContainer.appendChild(heading);
+                if (aiBox) {
+                    resultsContainer.appendChild(aiBox);
+                }
+                resultsContainer.appendChild(grid);
+                return grid;
+            }
+
+            const heading = resultsContainer.querySelector('.results-title');
+            if (heading) {
+                heading.textContent = title;
+                if (aiBox) {
+                    heading.insertAdjacentElement('afterend', aiBox);
+                }
+            }
+            return grid;
+        }
+
+        function renderSingleCard(game, container) {
+            const imageSrc = game.background_image || '';
+            const imageHtml = imageSrc
+                ? `<img class="game-card-image" src="${escapeHtml(imageSrc)}" alt="Capa de ${escapeHtml(game.name || 'jogo')}" loading="lazy">`
+                : '<div class="game-card-image game-card-image--empty"><span>Sem imagem</span></div>';
+
+            const platforms = Array.isArray(game.platforms) && game.platforms.length
+                ? game.platforms.map(platform => `<span class="badge">${escapeHtml(platform)}</span>`).join('')
+                : '<span class="badge badge--muted">Não informado</span>';
+
+            const rating = game.rating ? Number(game.rating).toFixed(1) : 'N/A';
+            const studio = game.studio || 'Desconhecido';
+            const genre = game.genre || 'Vários';
+            const modes = game.modes || 'Não informado';
+            const synopsis = game.description || 'Sem descrição.';
+
+            const cardHTML = `
+                <article class="game-card">
+                    <div class="game-card-media">
+                        ${imageHtml}
+                        <span class="game-rating">⭐ ${escapeHtml(rating)}</span>
+                    </div>
+                    <div class="game-card-body">
+                        <h3 class="game-title">${escapeHtml(game.name || 'Jogo sem nome')}</h3>
+                        <p class="game-meta">Lançamento: ${escapeHtml(formatDate(game.released))}</p>
+                        <p class="game-developer"><strong>Estúdio:</strong> ${escapeHtml(studio)}</p>
+                        <p class="game-genre"><strong>Gênero:</strong> ${escapeHtml(genre)}</p>
+                        <p class="game-modes"><strong>Modos:</strong> ${escapeHtml(modes)}</p>
+                        <div class="description-container">
+                            <p class="game-description">${escapeHtml(synopsis)}</p>
+                            <button type="button" class="read-more-btn" onclick="toggleDescription(this)">Ler mais</button>
+                        </div>
+                        <div class="platforms">
+                            <span class="platforms-label">Disponível em</span>
+                            <div class="badge-list">${platforms}</div>
+                        </div>
+                    </div>
+                </article>
+            `;
+            container.insertAdjacentHTML('beforeend', cardHTML);
+        }
+
+        async function buscarCategoria(genreSlug, event) {
+            if (event) event.preventDefault();
+            currentGenre = genreSlug;
+            currentPage = 1;
+            hasMore = true;
+
+            hideAiMessage();
+            const genreTitle = `Jogos de ${genreLabels[genreSlug] || 'categoria'}`;
+            ensureResultsGrid(genreTitle);
+            document.getElementById('results-section').scrollIntoView({ behavior: 'smooth' });
+
+            await carregarPaginaCategoria();
+        }
+
+        async function carregarPaginaCategoria() {
+            if (isFetching || !currentGenre) return;
+            isFetching = true;
+
+            const genreTitle = `Jogos de ${genreLabels[currentGenre] || 'categoria'}`;
+            const resultsGrid = document.getElementById('results-grid') || ensureResultsGrid(genreTitle);
+            const paginationControls = document.getElementById('pagination-controls');
+            const heading = resultsContainer.querySelector('.results-title');
+            if (heading) {
+                heading.textContent = genreTitle;
+            }
+
+            resultsGrid.innerHTML = '<p class="loading-text">Carregando jogos...</p>';
+            paginationControls.style.display = 'none';
+
+            try {
+                const response = await fetch(`/api/genre?genre=${encodeURIComponent(currentGenre)}&page=${currentPage}`);
+                const data = await response.json();
+
+                resultsGrid.innerHTML = '';
+
+                if (!response.ok) {
+                    resultsGrid.innerHTML = `<p class="error-message">${escapeHtml(data.error || 'Erro na busca de categorias.')}</p>`;
+                    return;
+                }
+
+                if (data.results && data.results.length > 0) {
+                    data.results.forEach(game => {
+                        renderSingleCard(game, resultsGrid);
+                    });
+
+                    hasMore = Boolean(data.next);
+
+                    document.getElementById('current-page-display').innerText = `Página ${currentPage}`;
+                    document.getElementById('prev-page').disabled = currentPage === 1;
+                    document.getElementById('next-page').disabled = !hasMore;
+                    paginationControls.style.display = 'flex';
+
+                    document.getElementById('results-section').scrollIntoView({ behavior: 'smooth' });
+                } else {
+                    resultsGrid.innerHTML = '<p class="info-message">Nenhum jogo encontrado nesta página.</p>';
+                }
+            } catch (err) {
+                console.error(err);
+                resultsGrid.innerHTML = '<p class="error-message">Erro ao carregar os jogos. Tente novamente.</p>';
+            } finally {
+                isFetching = false;
+            }
+        }
+
+        async function mudarPagina(direcao) {
+            if (direcao === -1 && currentPage > 1) {
+                currentPage--;
+            } else if (direcao === 1 && hasMore) {
+                currentPage++;
+            } else {
+                return;
+            }
+            await carregarPaginaCategoria();
+        }
+
         searchForm.addEventListener('submit', async (event) => {
             event.preventDefault();
+            resetGenrePaging();
 
             const description = searchInput.value;
             const buttonText = searchButton.querySelector('.button-text');
@@ -148,10 +480,12 @@
             const buttonIcon = searchButton.querySelector('svg');
 
             if (!description.trim()) {
+                hideAiMessage();
                 resultsContainer.innerHTML = '<p class="error-message">Por favor, descreva o jogo que você está procurando.</p>';
                 return;
             }
 
+            hideAiMessage();
             resultsContainer.innerHTML = '';
             buttonText.textContent = 'Buscando...';
             buttonIcon.style.display = 'none';
@@ -165,64 +499,28 @@
                     body: JSON.stringify({ description: description }),
                 });
 
-                const suggestions = await response.json();
+                const data = await response.json();
 
                 if (!response.ok) {
-                    resultsContainer.innerHTML = `<p class="error-message">${escapeHtml(suggestions.error || 'Ocorreu um erro ao buscar as recomendações.')}</p>`;
+                    hideAiMessage();
+                    resultsContainer.innerHTML = `<p class="error-message">${escapeHtml(data.error || 'Ocorreu um erro ao buscar as recomendações.')}</p>`;
                     return;
                 }
 
-                if (Array.isArray(suggestions) && suggestions.length > 0) {
-                    const heading = document.createElement('h2');
-                    heading.className = 'results-title';
-                    heading.textContent = 'Jogos recomendados para você';
-
-                    const grid = document.createElement('div');
-                    grid.className = 'games-grid';
-
-                    suggestions.forEach(game => {
-                        const card = document.createElement('article');
-                        card.className = 'game-card';
-
-                        const imageSrc = game.background_image || '';
-                        const imageHtml = imageSrc
-                            ? `<img class="game-card-image" src="${escapeHtml(imageSrc)}" alt="Capa de ${escapeHtml(game.name || 'jogo')}" loading="lazy">`
-                            : '<div class="game-card-image game-card-image--empty"><span>Sem imagem</span></div>';
-
-                        const platforms = Array.isArray(game.platforms) && game.platforms.length
-                            ? game.platforms.map(platform => `<span class="badge">${escapeHtml(platform)}</span>`).join('')
-                            : '<span class="badge badge--muted">Não informado</span>';
-
-                        const rating = game.rating ? game.rating.toFixed(1) : 'N/A';
-                        const released = game.released
-                            ? new Date(`${game.released}T00:00:00`).toLocaleDateString('pt-BR')
-                            : 'Não informado';
-
-                        card.innerHTML = `
-                            <div class="game-card-media">
-                                ${imageHtml}
-                                <span class="game-rating">⭐ ${escapeHtml(rating)}</span>
-                            </div>
-                            <div class="game-card-body">
-                                <h3>${escapeHtml(game.name || 'Jogo sem nome')}</h3>
-                                <p class="game-released">Lançamento: ${escapeHtml(released)}</p>
-                                <div class="platforms">
-                                    <span class="platforms-label">Disponível em</span>
-                                    <div class="badge-list">${platforms}</div>
-                                </div>
-                            </div>
-                        `;
-                        grid.appendChild(card);
-                    });
-
-                    resultsContainer.appendChild(heading);
-                    resultsContainer.appendChild(grid);
+                const games = Array.isArray(data.results) ? data.results : [];
+                if (games.length > 0) {
+                    showAiMessage(data.ai_message);
+                    const grid = ensureResultsGrid('Jogos recomendados para você');
+                    games.forEach(game => renderSingleCard(game, grid));
+                    hidePagination();
                 } else {
+                    hideAiMessage();
                     resultsContainer.innerHTML = '<p class="info-message">Nenhum jogo encontrado com essa descrição.</p>';
                 }
 
             } catch (error) {
                 console.error('Error fetching suggestions:', error);
+                hideAiMessage();
                 resultsContainer.innerHTML = '<p class="error-message">Ocorreu um erro ao buscar as recomendações.</p>';
             } finally {
                 buttonText.textContent = 'Buscar Jogos';
@@ -230,6 +528,30 @@
                 loader.style.display = 'none';
                 searchButton.disabled = false;
             }
+        });
+
+        function toggleDescription(btn) {
+            const desc = btn.previousElementSibling;
+            if (desc.classList.contains('expanded')) {
+                desc.classList.remove('expanded');
+                btn.textContent = 'Ler mais';
+            } else {
+                desc.classList.add('expanded');
+                btn.textContent = 'Ler menos';
+            }
+        }
+
+        function abrirModal(e) {
+            e.preventDefault();
+            document.getElementById('sobreModal').classList.add('active');
+        }
+
+        function fecharModal() {
+            document.getElementById('sobreModal').classList.remove('active');
+        }
+
+        document.getElementById('sobreModal').addEventListener('click', function(e) {
+            if (e.target === this) fecharModal();
         });
     </script>
 
