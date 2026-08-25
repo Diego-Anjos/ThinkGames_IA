@@ -1,8 +1,24 @@
+<div align="center">
+
 # 🎮 Think Games AI
 
-> **Buscador inteligente que traduz suas ideias em recomendações reais de jogos, integrando IA avançada com dados completos de catálogo, avaliações e plataformas.**
+**Apresentado como TCC na Faculdade FECAF**
 
-Um sistema de recomendação de jogos baseado em Inteligência Artificial desenvolvido como parte da atividade para o curso de Graduação em Gestão da Tecnologia da Informação da **Faculdade FECAF**.
+<br>
+
+![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Flask](https://img.shields.io/badge/Flask-000000?style=for-the-badge&logo=flask&logoColor=white)
+![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)
+![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-323330?style=for-the-badge&logo=javascript&logoColor=F7DF1E)
+![Google Gemini](https://img.shields.io/badge/Google_Gemini-8E75B2?style=for-the-badge&logo=google&logoColor=white)
+![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)
+
+<br>
+
+> Buscador inteligente que traduz suas ideias em recomendações reais de jogos, integrando IA avançada com dados completos de catálogo, avaliações e plataformas.
+
+</div>
 
 ---
 
