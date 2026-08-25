@@ -2,7 +2,6 @@ import json
 import logging
 import os
 import re
-import warnings
 
 import requests
 
@@ -11,19 +10,11 @@ import requests
 import truststore
 truststore.inject_into_ssl()
 
-# Suprime temporariamente o aviso de depreciação do pacote generativeai
-# (o aviso é emitido no import e o Python atribui ao app.py, não ao módulo).
-warnings.filterwarnings(
-    "ignore",
-    category=FutureWarning,
-    message=r".*google\.generativeai.*",
-)
-
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore", FutureWarning)
-    import google.generativeai as genai
 from dotenv import load_dotenv
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, Response, jsonify, render_template, request
+from google import genai
+from google.genai import errors as genai_errors
+from google.genai import types
 from whitenoise import WhiteNoise
 
 # Carrega o .env ANTES de ler as chaves
@@ -33,15 +24,23 @@ gemini_key = (os.getenv("GEMINI_API_KEY") or "").strip()
 if not gemini_key:
     raise ValueError("A chave GEMINI_API_KEY não está configurada no arquivo .env.")
 
-# transport="rest" é obrigatório aqui: o gRPC usa o próprio armazenamento de
-# certificados (BoringSSL) e ignora o truststore, então em redes com inspeção
-# TLS o handshake falha e o cliente fica reconectando para sempre, sem respeitar
-# o timeout. O REST passa pelo ssl do Python, onde o truststore funciona.
-genai.configure(api_key=gemini_key, transport="rest")
+# O SDK novo fala HTTP puro (httpx), então respeita o truststore e o timeout.
+gemini_client = genai.Client(api_key=gemini_key)
 
 RAWG_API_KEY = (os.getenv("RAWG_API_KEY") or "").strip()
 RAWG_SEARCH_URL = "https://api.rawg.io/api/games"
-GEMINI_MODEL = "gemini-3.6-flash"
+RAWG_PLACEHOLDER_IMAGE = "/static/images/placeholder.jpg"
+GEMINI_MODEL = (os.getenv("GEMINI_MODEL") or "gemini-3.6-flash").strip()
+MODELOS_FALLBACK = [
+    GEMINI_MODEL,
+    "gemini-3.1-flash-lite",
+    "gemini-2.5-flash",
+]
+
+# thinking_level "low" mantém a qualidade da curadoria sem o custo de latência
+# do raciocínio estendido, que é o padrão do modelo e levava ~60s por busca.
+GEMINI_TIMEOUT_MS = 60_000
+THINKING = types.ThinkingConfig(thinking_level="low")
 
 app = Flask(__name__)
 app.wsgi_app = WhiteNoise(app.wsgi_app, root="static/")
@@ -50,6 +49,11 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s",
 )
 app.logger.setLevel(logging.INFO)
+
+# O SDK loga cada requisição HTTP e avisa sobre function calling automático,
+# que não é usado aqui. Silenciar mantém o log da busca legível.
+logging.getLogger("google_genai.models").setLevel(logging.ERROR)
+logging.getLogger("httpx").setLevel(logging.WARNING)
 
 
 def map_rawg_game(game):
@@ -62,25 +66,52 @@ def map_rawg_game(game):
 
     return {
         "name": game.get("name") or "Jogo sem nome",
-        "background_image": game.get("background_image") or "",
+        "background_image": game.get("background_image") or RAWG_PLACEHOLDER_IMAGE,
         "rating": game.get("rating") or 0,
         "released": game.get("released") or "",
         "platforms": platforms,
     }
 
 
-def clean_ia_json_text(raw_text):
-    """Remove as crases de markdown que a IA às vezes coloca em volta do JSON."""
+def _card_from_ia(game, rawg_game=None):
+    """Monta o card com dados da IA e, se houver, capa/plataformas da RAWG."""
+    if rawg_game:
+        card = map_rawg_game(rawg_game)
+    else:
+        card = {
+            "name": game.get("name") or "Jogo sem nome",
+            "background_image": RAWG_PLACEHOLDER_IMAGE,
+            "rating": 0,
+            "released": "",
+            "platforms": [],
+        }
+    card["description"] = game.get("description", "Sem descrição.")
+    card["genre"] = game.get("genre", "Vários")
+    card["studio"] = game.get("studio", "Desconhecido")
+    card["modes"] = game.get("modes", "Não informado")
+    return card
+
+
+def extract_json_block(raw_text):
+    """Isola o JSON da resposta da IA, descartando markdown e texto solto em volta.
+
+    Devolve None quando não há um bloco JSON reconhecível no texto.
+    """
     text = (raw_text or "").strip()
     if text.startswith("```"):
         text = re.sub(r"^```(?:json)?\s*", "", text)
         text = re.sub(r"\s*```$", "", text)
-    return text.strip()
+
+    match = re.search(r"(\{.*\}|\[.*\])", text.strip(), re.DOTALL)
+    return match.group(1).strip() if match else None
 
 
 def parse_games_info(raw_text, limit=6):
     """Extrai jogos com nome, estúdio, gênero e descrição a partir do JSON da IA."""
-    return extract_games_info(json.loads(clean_ia_json_text(raw_text)), limit=limit)
+    payload = extract_json_block(raw_text)
+    if payload is None:
+        raise ValueError("A IA não devolveu um bloco JSON reconhecível.")
+    return extract_games_info(json.loads(payload), limit=limit)
 
 
 def extract_games_info(data, limit=6):
@@ -130,6 +161,43 @@ def _stringify_modes(value):
     return text or "Não informado"
 
 
+def _generate_with_fallback(contents):
+    """Chama o Gemini tentando modelos em ordem até um responder sem erro 429."""
+    ultimo_erro_cota = None
+    for indice, modelo in enumerate(MODELOS_FALLBACK):
+        try:
+            return gemini_client.models.generate_content(
+                model=modelo,
+                contents=contents,
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                    thinking_config=THINKING,
+                    http_options=types.HttpOptions(timeout=GEMINI_TIMEOUT_MS),
+                ),
+            )
+        except genai_errors.APIError as e:
+            if e.code != 429:
+                raise
+            ultimo_erro_cota = e
+            proximo = (
+                MODELOS_FALLBACK[indice + 1]
+                if indice + 1 < len(MODELOS_FALLBACK)
+                else None
+            )
+            if proximo:
+                app.logger.warning(
+                    "Cota do modelo %s excedida, tentando modelo %s...",
+                    modelo,
+                    proximo,
+                )
+            else:
+                app.logger.warning(
+                    "Cota do modelo %s excedida. Sem mais modelos de fallback.",
+                    modelo,
+                )
+    raise ultimo_erro_cota
+
+
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -162,15 +230,15 @@ def suggest():
         app.logger.info("--- NOVA BUSCA INICIADA ---")
         app.logger.info("1. Pedido do usuário: '%s'", description)
         app.logger.info(
-            "2. Conectando com a IA Gemini (%s, timeout de 25s)...",
-            GEMINI_MODEL,
+            "2. Conectando com a IA Gemini (%s, thinking low, timeout de %ss)...",
+            " -> ".join(MODELOS_FALLBACK),
+            GEMINI_TIMEOUT_MS // 1000,
         )
-        model = genai.GenerativeModel(GEMINI_MODEL)
         prompt = f"""
         Você é um curador especialista em videogames e um motor de recomendação avançado.
         Analise o pedido do usuário: "{description}"
 
-        REGRA CRÍTICA DE FORMATAÇÃO: Você está retornando um JSON. NUNCA use aspas duplas (") dentro do conteúdo das strings. Se precisar destacar algo, use aspas simples (').
+        REGRA CRÍTICA DE FORMATAÇÃO: Você está retornando um JSON. NUNCA use aspas duplas (") dentro do conteúdo das strings (ex: descrições ou nomes). Se precisar destacar algo ou fazer citações, use aspas simples (').
 
         SUAS DIRETRIZES DE RECOMENDAÇÃO:
         1. Interpretação Profunda: Se o usuário citar um jogo específico (ex: "parecido com Resident Evil"), identifique a essência desse jogo (atmosfera, mecânicas, câmera, tema) e recomende outros jogos que entreguem uma experiência semelhante (mas evite recomendar exatamente o jogo que ele usou como base).
@@ -194,24 +262,28 @@ def suggest():
         Não adicione markdown (como ```json), crases ou nenhum texto fora do JSON.
         """
 
-        # O request_options força a queda se a rede segurar a conexão
-        response = model.generate_content(
-            prompt,
-            generation_config={"response_mime_type": "application/json"},
-            request_options={"timeout": 25},
-        )
+        response = _generate_with_fallback(prompt)
 
         app.logger.info("3. Resposta bruta do Gemini recebida!")
 
-        raw_text = clean_ia_json_text(response.text)
+        raw_text = extract_json_block(response.text)
+        if raw_text is None:
+            app.logger.error(
+                "Nenhum bloco JSON encontrado na resposta da IA. Resposta bruta: %s",
+                response.text,
+            )
+            return jsonify({
+                "error": "A IA retornou um formato inválido. Tente novamente."
+            }), 500
+
         try:
             ia_data = json.loads(raw_text)
         except json.JSONDecodeError as e:
             app.logger.error(
-                "Erro ao decodificar JSON da IA: %s. Texto recebido: %s", e, raw_text
+                "Erro ao decodificar JSON da IA: %s. Texto extraído: %s", e, raw_text
             )
             return jsonify({
-                "error": "A IA retornou um formato inválido. Tente novamente."
+                "error": "Erro no processamento da IA. Tente novamente."
             }), 500
 
         ai_message = "Aqui estão algumas recomendações incríveis para você!"
@@ -229,37 +301,81 @@ def suggest():
             if not name:
                 continue
             app.logger.info(" -> Buscando imagem para: %s", name)
-            req = requests.get(
-                RAWG_SEARCH_URL,
-                params={
-                    "key": rawg_key,
-                    "search": name,
-                    "page_size": 1,
-                },
-                timeout=10,
-            )
+            try:
+                req = requests.get(
+                    RAWG_SEARCH_URL,
+                    params={
+                        "key": rawg_key,
+                        "search": name,
+                        "page_size": 1,
+                    },
+                    timeout=10,
+                )
+            except requests.exceptions.Timeout:
+                app.logger.warning(
+                    "    [AVISO] Timeout da RAWG ao buscar '%s'. Usando dados parciais.",
+                    name,
+                )
+                resultados_finais.append(_card_from_ia(game))
+                continue
+            except requests.exceptions.RequestException as e:
+                app.logger.warning(
+                    "    [AVISO] Falha de conexão com a RAWG ao buscar '%s': %s",
+                    name,
+                    e,
+                )
+                resultados_finais.append(_card_from_ia(game))
+                continue
 
             if req.status_code == 200:
                 rawg_data = req.json()
                 if rawg_data.get("results"):
                     jogo_encontrado = rawg_data["results"][0]
-                    jogo_completo = map_rawg_game(jogo_encontrado)
-                    jogo_completo["description"] = game.get("description", "Sem descrição.")
-                    jogo_completo["genre"] = game.get("genre", "Vários")
-                    jogo_completo["studio"] = game.get("studio", "Desconhecido")
-                    jogo_completo["modes"] = game.get("modes", "Não informado")
-                    resultados_finais.append(jogo_completo)
+                    resultados_finais.append(_card_from_ia(game, jogo_encontrado))
                     app.logger.info("    [OK] Encontrado!")
                 else:
-                    app.logger.warning("    [AVISO] Jogo não retornado na busca RAWG.")
+                    app.logger.warning(
+                        "    [AVISO] Jogo não retornado na busca RAWG. Usando dados parciais."
+                    )
+                    resultados_finais.append(_card_from_ia(game))
             else:
-                app.logger.error("    [ERRO] RAWG retornou status %s", req.status_code)
+                app.logger.warning(
+                    "    [AVISO] RAWG retornou status %s ao buscar '%s'. Usando dados parciais.",
+                    req.status_code,
+                    name,
+                )
+                resultados_finais.append(_card_from_ia(game))
 
         app.logger.info("6. Busca finalizada com sucesso! Retornando ao frontend.")
-        return jsonify({"ai_message": ai_message, "results": resultados_finais})
+        response_obj = {"ai_message": ai_message, "results": resultados_finais}
+        try:
+            # dumps escapa aspas, barras e acentos, evitando JSON inválido no navegador.
+            return Response(json.dumps(response_obj), mimetype="application/json")
+        except TypeError as e:
+            app.logger.error("Erro na serialização manual: %s", e)
+            return jsonify({"error": "Erro na formatação dos dados finais."}), 500
+
+    except genai_errors.APIError as e:
+        if e.code == 429:
+            app.logger.error("[QUOTA] Limite de uso da IA atingido: %s", e)
+            return jsonify({
+                "error": "O limite de uso da IA foi atingido. Aguarde um instante e tente novamente."
+            }), 429
+
+        app.logger.error("[API] A IA retornou erro %s: %s", e.code, e)
+        return jsonify({
+            "error": "A IA está sobrecarregada agora. Tente novamente em alguns segundos."
+        }), 503
 
     except Exception as e:
-        app.logger.error("[ERRO GRAVE] O processamento falhou: %s", e)
+        mensagem = str(e)
+        if "timed out" in mensagem.lower() or "timeout" in mensagem.lower():
+            app.logger.error("[TIMEOUT] A IA não respondeu no tempo limite: %s", mensagem)
+            return jsonify({
+                "error": "A IA demorou demais para responder. Tente novamente em alguns segundos."
+            }), 504
+
+        app.logger.error("[ERRO GRAVE] O processamento falhou: %s", mensagem)
         app.logger.exception("Falha ao processar recomendação com Gemini/RAWG")
         return jsonify({
             "error": "Erro na comunicação com a IA ou RAWG. Tente novamente."
@@ -323,7 +439,6 @@ def _enrich_genre_games(resultados_base):
         return
 
     app.logger.info("Enriquecendo %s jogos com a IA...", len(nomes_para_ia))
-    model = genai.GenerativeModel(GEMINI_MODEL)
     lista_nomes = "\n".join(f"- {nome}" for nome in nomes_para_ia)
     prompt_enrich = f"""
     Você é um especialista em videogames.
@@ -335,14 +450,11 @@ def _enrich_genre_games(resultados_base):
     "studio": "nome do estúdio desenvolvedor",
     "modes": "modos de jogo (ex: Single-player, Multiplayer)",
     "description": "Sinopse em português do Brasil com no máximo 2 linhas."
+    NUNCA use aspas duplas (") dentro do conteúdo das strings; use aspas simples (').
     Não adicione markdown, crases ou explicações. Apenas o array JSON.
     """
 
-    response = model.generate_content(
-        prompt_enrich,
-        generation_config={"response_mime_type": "application/json"},
-        request_options={"timeout": 35},
-    )
+    response = _generate_with_fallback(prompt_enrich)
 
     ia_data = parse_games_info(response.text, limit=None)
     app.logger.info("IA devolveu detalhes de %s jogos.", len(ia_data))

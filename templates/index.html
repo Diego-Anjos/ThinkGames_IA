@@ -429,7 +429,8 @@
 
                 resultsGrid.innerHTML = '';
 
-                if (!response.ok) {
+                if (!response.ok || data.error) {
+                    hideAiMessage();
                     resultsGrid.innerHTML = `<p class="error-message">${escapeHtml(data.error || 'Erro na busca de categorias.')}</p>`;
                     return;
                 }
@@ -500,7 +501,7 @@
 
                 const data = await response.json();
 
-                if (!response.ok) {
+                if (!response.ok || data.error) {
                     hideAiMessage();
                     resultsContainer.innerHTML = `<p class="error-message">${escapeHtml(data.error || 'Ocorreu um erro ao buscar as recomendações.')}</p>`;
                     return;
@@ -508,13 +509,13 @@
 
                 const games = Array.isArray(data.results) ? data.results : [];
                 if (games.length > 0) {
-                    showAiMessage(data.ai_message);
+                    showAiMessage(data.ai_message || 'Aqui estão algumas recomendações para você!');
                     const grid = ensureResultsGrid('Jogos recomendados para você');
                     games.forEach(game => renderSingleCard(game, grid));
                     hidePagination();
                 } else {
                     hideAiMessage();
-                    resultsContainer.innerHTML = '<p class="info-message">Nenhum jogo encontrado com essa descrição.</p>';
+                    resultsContainer.innerHTML = '<p class="info-message">A IA não conseguiu encontrar recomendações válidas para o seu pedido. Tente reescrever de forma mais detalhada.</p>';
                 }
 
             } catch (error) {
