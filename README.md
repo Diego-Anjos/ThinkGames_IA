@@ -2,7 +2,7 @@
 
 # 🎮 Think Games AI
 
-**Apresentado como TCC na Faculdade FECAF**
+**Apresentado como Trabalho na Faculdade FECAF**
 
 <br>
 
