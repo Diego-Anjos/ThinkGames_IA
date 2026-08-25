@@ -1,94 +1,94 @@
-# Think Games AI 🎮
+# 🎮 Think Games AI
 
-> Um sistema inteligente de recomendação de jogos baseado em Inteligência Artificial. Imagine o seu jogo perfeito, descreva-o com suas palavras e deixe nossa IA descobrir títulos personalizados para você.
+> **Buscador inteligente que traduz suas ideias em recomendações reais de jogos, integrando IA avançada com dados completos de catálogo, avaliações e plataformas.**
 
-Este projeto foi desenvolvido como parte da atividade para o curso de Graduação em Gestão da Tecnologia da Informação da Faculdade FECAF.
-
-## 📜 Visão Geral
-
-Muitos jogadores sentem dificuldade em encontrar jogos que realmente correspondam aos seus gostos específicos, para além dos títulos mais populares. O Think Games AI resolve este problema permitindo que os usuários descrevam um jogo em linguagem natural, e utiliza uma IA com lógica de pontuação para analisar o texto e sugerir os títulos mais relevantes em seu banco de dados.
-
-## ✨ Features
-
--   **Busca por Linguagem Natural:** Descreva o jogo que você quer com total liberdade.
--   **IA com Lógica de Pontuação:** O sistema analisa gêneros e temas com pesos diferentes para fornecer recomendações mais precisas.
--   **Interface Moderna e Intuitiva:** Um design limpo e direto ao ponto, focado na experiência do usuário.
--   **Banco de Dados Curado:** Uma lista de jogos variada para cobrir diversos gêneros e estilos.
-
-## 💻 Tecnologias Utilizadas
-
--   **Backend:** Python 3, Flask
--   **Frontend:** HTML5, CSS3, JavaScript (Vanilla)
--   **Banco de Dados:** Simulado em memória (Lista de Dicionários Python)
+Um sistema de recomendação de jogos baseado em Inteligência Artificial desenvolvido como parte da atividade para o curso de Graduação em Gestão da Tecnologia da Informação da **Faculdade FECAF**.
 
 ---
 
-## 🚀 Como Executar o Projeto Localmente
+## ✨ Visão Geral
 
-Siga as instruções abaixo para configurar e executar a aplicação em sua máquina local.
+Muitos jogadores sentem dificuldade em encontrar jogos que realmente correspondam aos seus gostos específicos, para além dos títulos mais populares. O **Think Games AI** resolve este problema permitindo que os usuários descrevam o cenário perfeito de um jogo em linguagem natural. Utilizando a API do Google Gemini aliada ao imenso banco de dados da RAWG, o sistema compreende contextos, emoções e comparações para sugerir títulos precisos e justificados.
 
-### **Pré-requisitos**
+## 🚀 Funcionalidades
 
--   [Python 3.8+](https://www.python.org/downloads/)
--   [Git](https://git-scm.com/downloads)
+- **Busca por Linguagem Natural:** Descreva o jogo que você quer com total liberdade (ex: *"Quero um jogo parecido com Resident Evil, mas no espaço"*).
+- **Curadoria com Inteligência Artificial:** A IA atua como um especialista, entendendo o contexto do seu pedido e justificando o porquê de cada recomendação.
+- **Enriquecimento em Tempo Real:** Nas buscas por categorias, o sistema utiliza IA assíncrona para gerar descrições e detalhes de jogos em português, preenchendo lacunas de APIs públicas.
+- **Interface Moderna e Responsiva:** Design elegante no estilo *Dark/Tech*, totalmente responsivo (Mobile-First) e amigável.
+- **Catálogo Abrangente:** Alimentado pela API da RAWG, cobrindo milhares de jogos, gêneros e plataformas.
 
-### **Passo a Passo**
+---
 
-1.  **Clone o repositório:**
-    ```bash
-    git clone [https://github.com/seu-usuario/think-games-ai.git](https://github.com/seu-usuario/think-games-ai.git)
-    ```
+## 🛠️ Tecnologias Utilizadas
 
-2.  **Acesse a pasta do projeto:**
-    ```bash
-    cd think-games-ai
-    ```
+- **Backend:** Python 3, Flask
+- **Frontend:** HTML5, CSS3, JavaScript (Vanilla), SVG Inline
+- **APIs:**
+  - [Google Gemini API](https://aistudio.google.com/) (Motor de LLM / Curadoria)
+  - [RAWG Video Games Database API](https://rawg.io/apidocs) (Catálogo e Imagens)
+- **Deploy:** Preparado para Vercel (Serverless)
 
-3.  **Crie e ative um ambiente virtual:**
-    * No Windows:
-        ```bash
-        python -m venv .venv
-        .\.venv\Scripts\activate
-        ```
-    * No macOS ou Linux:
-        ```bash
-        python3 -m venv .venv
-        source .venv/bin/activate
-        ```
+---
 
-4.  **Instale as dependências:**
-    O projeto possui um arquivo `requirements.txt` para facilitar a instalação das bibliotecas necessárias.
-    ```bash
-    pip install -r requirements.txt
-    ```
-    *(Se você ainda não criou o arquivo `requirements.txt`, crie-o na raiz do projeto com o seguinte conteúdo antes de rodar o comando acima):*
-    ```
-    Flask
-    ```
+## ⚙️ Como rodar o projeto localmente
 
-5.  **Execute a aplicação:**
-    ```bash
-    python app.py
-    ```
+### Pré-requisitos
 
-6.  **Acesse no navegador:**
-    Abra seu navegador e acesse o seguinte endereço:
-    [http://xxx.x.x.x
+Você precisará ter o [Python](https://www.python.org/) instalado na sua máquina e chaves de API válidas do Google Gemini e da RAWG.
 
-Pronto! A aplicação Think Games AI estará rodando localmente.
+### Passos
 
-## 📂 Estrutura de Arquivos
+1. **Clone o repositório:**
 
-```
-.
-├── app.py              # Lógica do backend e da IA
-├── requirements.txt      # Dependências do Python
-├── static/
-│   └── style.css       # Estilos da aplicação
-└── templates/
-    └── index.html      # Estrutura da página web
+```bash
+git clone https://github.com/Diego-Anjos/ThinkGames_IA.git
+cd ThinkGames_IA
 ```
 
-## 📄 Licença
+2. **Crie e ative um ambiente virtual:**
 
-Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
+```bash
+python -m venv venv
+```
+
+```bash
+# No Windows:
+venv\Scripts\activate
+```
+
+```bash
+# No Linux/Mac:
+source venv/bin/activate
+```
+
+3. **Instale as dependências:**
+
+```bash
+pip install -r requirements.txt
+```
+
+4. **Configure as variáveis de ambiente:**
+
+Crie um arquivo chamado `.env` na raiz do projeto e adicione suas chaves:
+
+```env
+RAWG_API_KEY=sua_chave_da_rawg_aqui
+GEMINI_API_KEY=sua_chave_do_gemini_aqui
+```
+
+5. **Inicie o servidor:**
+
+```bash
+python app.py
+```
+
+O projeto estará rodando em [http://127.0.0.1:5000/](http://127.0.0.1:5000/).
+
+---
+
+## 👨‍💻 Autor
+
+**Diego Anjos**
+
+Estudante de Gestão da Tecnologia da Informação — FECAF
